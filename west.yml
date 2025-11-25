@@ -10,5 +10,6 @@ manifest:
         name-allowlist:
           - cmsis_6
           - hal_rpi_pico
+          - hal_stm32
           - loramac-node
           - zcbor
