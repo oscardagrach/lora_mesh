@@ -20,7 +20,7 @@ This project is very much WIP and not complete. I wrote it for fun and continue 
 ## Supported Hardware
 
 ### Primary Target
-- **Adafruit Feather STM32WL** (feather_stm32wl)
+- **PureEngineering Feather STM32WL** (feather_stm32wl)
   - STM32WL55xx SoC with integrated LoRa radio
   - Sub-GHz LoRa communication (915 MHz default for US)
 
