@@ -39,6 +39,9 @@ typedef struct {
 static sensor_info_t sensor_list[SENSOR_MAX_DEVICES];
 static int sensor_list_len = 0;
 
+/* Delayable work item for periodic sensor broadcasting */
+static struct k_work_delayable sensor_broadcast_work;
+
 #define SLAB_ALIGN 4
 
 /* Memory slabs for efficient allocation/deallocation */
@@ -135,9 +138,29 @@ static int __attribute__((used)) register_sensor(const struct device *dev)
 }
 
 /**
+ * @brief Work handler for periodic sensor broadcasting
+ *
+ * This function is called by the work queue to broadcast sensor data.
+ * It calls the sensor_broadcast() function and reschedules itself for
+ * the next broadcast interval.
+ *
+ * @param work Pointer to the work structure
+ */
+static void sensor_broadcast_work_handler(struct k_work *work)
+{
+	/* Broadcast sensor data */
+	sensor_broadcast();
+
+	/* Reschedule for next broadcast */
+	k_work_schedule_for_queue(&app_work_q, &sensor_broadcast_work,
+				  K_MSEC(SENSOR_BROADCAST_INTERVAL_MS));
+}
+
+/**
  * @brief Initialize the sensor subsystem
  *
  * Detects and registers all compatible sensors connected to the device.
+ * If sensors are found, initializes and schedules periodic broadcasting.
  */
 void sensor_init(void)
 {
@@ -175,8 +198,18 @@ void sensor_init(void)
     /* Undefine the helper macro to avoid namespace pollution */
     #undef REGISTER_BY_COMPAT
 
-    LOG_INF("Sensor initialization complete: %d sensor devices registered", 
+    LOG_INF("Sensor initialization complete: %d sensor devices registered",
             sensor_list_len);
+
+    /* Initialize and schedule periodic broadcasting if sensors are available */
+    if (sensor_list_len > 0) {
+        k_work_init_delayable(&sensor_broadcast_work, sensor_broadcast_work_handler);
+        k_work_schedule_for_queue(&app_work_q, &sensor_broadcast_work,
+                                 K_MSEC(SENSOR_BROADCAST_INTERVAL_MS));
+        LOG_INF("Sensor broadcasting scheduled every %d ms", SENSOR_BROADCAST_INTERVAL_MS);
+    } else {
+        LOG_INF("No sensors detected, operating in relay-only mode");
+    }
 }
 
 /**

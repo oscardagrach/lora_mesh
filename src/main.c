@@ -28,15 +28,10 @@ LOG_MODULE_REGISTER(main);
 extern uint32_t node_address;
 
 /**
- * @brief Delay between sensor broadcasts in milliseconds
- */
-#define LOOP_DELAY 10000
-
-/**
  * @brief Application entry point
  *
- * Initializes all subsystems in the correct order and runs
- * the main application loop if sensors are available.
+ * Initializes all subsystems in the correct order.
+ * Sensor broadcasting is handled by the work queue if sensors are detected.
  *
  * @return 0 on successful completion (should never return)
  */
@@ -100,20 +95,11 @@ int main(void)
     mesh_init();
     LOG_INF("Mesh network initialized with adaptive reliability-based routing");
 
-    /* Main application loop - only run if sensors are available */
-    if (sensor_available > 0) {
-        LOG_INF("Starting sensor broadcast loop");
-        while (true) {
-            sensor_broadcast();
-            k_msleep(LOOP_DELAY);
-        }
-    } else {
-        /* If no sensors, just keep the system running to relay messages */
-        LOG_INF("Running in relay-only mode");
-        while (true) {
-            k_sleep(K_FOREVER);
-        }
-    }
+    /* All work is now handled by the work queue system.
+     * Sensor broadcasting is automatically scheduled if sensors are detected.
+     * The main thread can sleep indefinitely. */
+    LOG_INF("Initialization complete. All tasks running on work queue.");
+    k_sleep(K_FOREVER);
 
     /* Should never reach here */
     return 0;

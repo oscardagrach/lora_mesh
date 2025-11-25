@@ -124,6 +124,9 @@
 /** @brief Maximum number of sensor readings in a single packet */
 #define SENSOR_MAX_READINGS (SENSOR_MAX_DEVICES * SENSOR_MAX_CHANNELS)
 
+/** @brief Interval in milliseconds between sensor data broadcasts */
+#define SENSOR_BROADCAST_INTERVAL_MS 10000
+
 /* ========================================================================== */
 /* RADIO CONFIGURATION                                                        */
 /* ========================================================================== */
