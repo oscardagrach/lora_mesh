@@ -1,0 +1,5 @@
+board:
+  name: feather_stm32wl
+  vendor: st
+  socs:
+    - name: stm32wl55xx

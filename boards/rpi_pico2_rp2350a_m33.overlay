@@ -1,0 +1,30 @@
+/ {
+	chosen {
+        zephyr,console = &cdc_acm_uart0;
+		zephyr,console-uart = &cdc_acm_uart0;
+		zephyr,shell-uart = &cdc_acm_uart0;
+	};
+	aliases {
+		lora0 = &lora;
+	};
+};
+
+&spi0 {
+	status = "okay";
+
+	cs-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
+	lora: radio@0 {
+		reg = <0>;
+		compatible = "semtech,sx1276";
+		reset-gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+		dio-gpios = <&gpio0 7 (GPIO_PULL_DOWN | GPIO_ACTIVE_HIGH)>;
+		spi-max-frequency = <10000000>;
+		power-amplifier-output = "pa-boost";
+	};
+};
+
+&zephyr_udc0 {
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+	};
+};

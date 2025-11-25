@@ -1,0 +1,14 @@
+
+manifest:
+  projects:
+    - name: zephyr
+      revision: v4.2.1
+      url: https://github.com/zephyrproject-rtos/zephyr
+      import:
+        path-prefix: deps
+        file: west.yml
+        name-allowlist:
+          - cmsis_6
+          - hal_rpi_pico
+          - loramac-node
+          - zcbor

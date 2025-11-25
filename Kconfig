@@ -1,0 +1,71 @@
+# Kconfig for Application-Specific Settings
+
+menu "Application Settings"
+
+menu "LoRa Radio Configuration"
+
+source "Kconfig.zephyr"
+
+config APP_LORA_FREQUENCY
+    int "LoRa Frequency (Hz)"
+    default 915000000
+    help
+      Center frequency for LoRa communication in Hz.
+      Common values: 915000000 (US), 868000000 (EU), 433000000.
+
+config APP_LORA_BANDWIDTH
+    int "LoRa Bandwidth"
+    default 0 # BW_125_KHZ
+    range 0 9
+    help
+      LoRa signal bandwidth. Refer to LoRa driver definitions:
+      0: BW_125_KHZ, 1: BW_250_KHZ, 2: BW_500_KHZ, etc.
+      (Check exact mapping in lorawan_radio.h or similar)
+
+config APP_LORA_SPREADING_FACTOR
+    int "LoRa Spreading Factor"
+    default 7 # SF_7
+    range 5 12
+    help
+      LoRa spreading factor (SF5 to SF12).
+      Higher SF means longer range but lower data rate.
+      (Check exact mapping for defines like SF_7 in LoRa driver)
+
+config APP_LORA_CODING_RATE
+    int "LoRa Coding Rate"
+    default 1 # CR_4_5
+    range 1 4
+    help
+      LoRa coding rate.
+      1: CR_4_5, 2: CR_4_6, 3: CR_4_7, 4: CR_4_8.
+
+config APP_LORA_PREAMBLE_LEN
+    int "LoRa Preamble Length"
+    default 8
+    help
+      Length of the LoRa preamble.
+
+config APP_LORA_TX_POWER
+    int "LoRa Transmit Power (dBm)"
+    default 14 # Max for many modules, adjust as per hardware/regulations
+    help
+      Transmit power in dBm. Check hardware datasheet for valid range.
+      A common default for SX127x is 14. 20 is often an absolute max.
+
+config APP_LORA_IQ_INVERTED
+    bool "LoRa IQ Inverted"
+    default false
+    help
+      Set to true if IQ signals are inverted.
+
+config APP_LORA_PUBLIC_NETWORK
+    bool "LoRa Public Network"
+    default false
+    help
+      Set to true if using a public LoRaWAN network (sync word).
+
+endmenu # LoRa Radio Configuration
+
+# Add other application Kconfig options here later (e.g., Mesh, Buffers)
+
+endmenu # Application Settings

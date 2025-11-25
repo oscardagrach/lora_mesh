@@ -1,0 +1,4 @@
+# STM32WL55CC Feather board configuration
+# Copyright (c) 2021 PureEngineering, LLC
+config BOARD_FEATHER_STM32WL
+	select SOC_STM32WL55XX

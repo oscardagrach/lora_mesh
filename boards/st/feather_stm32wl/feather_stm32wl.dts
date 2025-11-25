@@ -1,0 +1,212 @@
+/*
+ * Copyright (c) 2021 PureEngineering, LLC
+ *
+ */
+
+/dts-v1/;
+#include <st/wl/stm32wl55Xc.dtsi>
+#include <st/wl/stm32wl55ccux-pinctrl.dtsi>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/led/led.h>
+
+/ {
+	model = "Feather STM32WL board";
+	compatible = "st,stm32wl55-nucleo";
+
+	chosen {
+		zephyr,console = &lpuart1;
+		zephyr,shell-uart = &lpuart1;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash0;
+		zephyr,code-partition = &slot0_partition;
+	};
+
+	aliases {
+		led0 = &led0;
+		mcuboot-button0 = &button1;
+		mcuboot-led0 = &led0;
+		lora0 = &lora;
+		uart0 = &usart1;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		led0: led_0 {
+			gpios = <&gpiob 12 GPIO_ACTIVE_LOW>;
+			label = "Green LED";
+		};
+	};
+
+	buttons {
+		compatible = "gpio-keys";
+		button1: button_1 {
+			label = "User SW1";
+			gpios = <&gpioa 8 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
+};
+
+&cpu0 {
+	cpu-power-states = <&stop0 &stop1 &stop2>;
+};
+
+&clk_lsi {
+	status = "okay";
+};
+
+stm32_lp_tick_source: &lptim1 {
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x80000000>,
+			 <&rcc STM32_SRC_LSI LPTIM1_SEL(1)>;
+	status = "okay";
+};
+
+&clk_lse {
+	status = "okay";
+};
+
+&clk_hsi {
+	status = "okay";
+};
+
+&pll {
+	div-m = <1>;
+	mul-n = <6>;
+	div-r = <2>;
+	div-q = <2>;
+	clocks = <&clk_hsi>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(48)>;
+	cpu1-prescaler = <1>;
+	cpu2-prescaler = <1>;
+	ahb3-prescaler = <1>;
+	apb1-prescaler = <1>;
+	apb2-prescaler = <1>;
+};
+
+&lpuart1 {
+	pinctrl-0 = <&lpuart1_tx_pa2 &lpuart1_rx_pa3>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+};
+
+&usart1 {
+	pinctrl-0 = <&usart1_tx_pb6 &usart1_rx_pb7>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+
+    esp32 {
+        compatible = "espressif,esp-at";
+        reset-gpios = <&gpioa 0 GPIO_ACTIVE_LOW>;
+        status = "okay";
+    };
+};
+
+&i2c2 {
+	pinctrl-0 = <&i2c2_scl_pa12 &i2c2_sda_pa11>;
+	pinctrl-names = "default";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+
+	bme680: bme680@76 {
+		compatible = "bosch,bme680";
+		reg = <0x76>;
+		label = "BME680";
+		status = "okay";
+	};
+	lis2dw12: lis2dw12@19 {
+		compatible = "st,lis2dw12";
+		reg = <0x19>;
+		label = "LIS2DW12";
+		status = "okay";
+	};
+
+};
+
+&spi1 {
+	pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
+		     &spi1_miso_pa6 &spi1_mosi_pa7>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+// &adc1 {
+// 	status = "okay";
+// };
+
+// &die_temp {
+// 	status = "okay";
+// };
+
+&aes {
+	status = "okay";
+};
+
+&rtc {
+	clocks = <&rcc STM32_CLOCK_BUS_APB1 0x00000400>,
+			 <&rcc STM32_SRC_LSE RTC_SEL(1)>;
+	status = "okay";
+};
+
+&rng {
+	status = "okay";
+};
+
+&iwdg {
+	status = "okay";
+};
+
+&subghzspi {
+	status = "okay";
+	lora: radio@0 {
+		status = "okay";
+		antenna-enable-gpios = <&gpiob 0 GPIO_ACTIVE_HIGH>;
+		tx-enable-gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
+		rx-enable-gpios = <&gpioc 13 GPIO_ACTIVE_LOW>;
+		power-amplifier-output = "rfo-hp";
+		rfo-lp-max-power = <14>;
+		rfo-hp-max-power = <22>;
+		// dio3-tcxo-voltage = <SX126X_DIO3_TCXO_1V7>;
+		// tcxo-power-startup-delay-ms = <5>;
+	};
+};
+
+&flash0 {
+	/*
+	 * For more information, see:
+	 * http://docs.zephyrproject.org/latest/guides/dts/index.html#flash-partitions
+	 */
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		/* Reserve 64kB for the bootloader */
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 DT_SIZE_K(48)>;
+		};
+
+		slot0_partition: partition@c000 {
+			label = "image-0";
+			reg = <0x0000C000 DT_SIZE_K(96)>;
+		};
+
+		slot1_partition: partition@24000 {
+			label = "image-1";
+			reg = <0x00024000 DT_SIZE_K(96)>;
+		};
+
+		storage_partition: partition@3C000 {
+			label = "storage";
+			reg = <0x0003C000 DT_SIZE_K(16)>;
+		};
+	};
+};
+
